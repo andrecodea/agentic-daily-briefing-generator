@@ -41,6 +41,10 @@ flowchart TD
 
 ---
 
+## Exemplo do Briefing
+
+![e.g](briefing.png)
+
 ## 🖇️ Aprofundamento Técnico
 
 ### 🔹 1. Ingestão Multi-Fonte
