@@ -1,5 +1,7 @@
 # 🌐 Automated Daily Briefing Agent
 
+![Briefer](briefer.png)
+
 This project implements an autonomous **n8n** agent that compiles a hyper-personalized daily briefing. It orchestrates data from Google Workspace and OpenWeatherMap, summarizes it using LLMs, and not only delivers it via Telegram but also **consolidates the day's context into a Vector Database** for long-term memory.
 
 ---
