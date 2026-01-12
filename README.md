@@ -1,72 +1,105 @@
-# 🌐 Automated Daily Briefing
+# 🌐 Automated Daily Briefing Agent
 
-This project uses **n8n** to automate the generation, compilation, and delivery of daily briefings, which include information collected from sources like Google Calendar, Gmail, Google Tasks, and OpenWeatherMap. In summary, the workflow acts as a personalized morning assistant, delivering all relevant information directly on Telegram.
+This project implements an autonomous **n8n** agent that compiles a hyper-personalized daily briefing. It orchestrates data from Google Workspace and OpenWeatherMap, summarizes it using LLMs, and not only delivers it via Telegram but also **consolidates the day's context into a Vector Database** for long-term memory.
 
 ---
 
 ## 🔧 Workflow Architecture
 
-Below is a visual representation of the architecture, highlighting its main components:
+The system follows a linear extraction pipeline with a branching post-processing strategy for memory storage.
 
 ```mermaid
 flowchart TD
-    A[⏰ Scheduled Trigger] -->|6:00 AM| B[🔍 Data Collection]
-    B --> B1[🌧️ OpenWeatherMap (Weather)]
-    B --> B2[📅 Google Calendar (Daily Events)]
-    B --> B3[📧 Gmail (Recent Emails)]
-    B --> B4[📝 Google Tasks (Tasks)]
-    B1 --> C[🔄 Merge Data]
-    B2 --> C[🔄 Merge Data]
-    B3 --> C[🔄 Merge Data]
-    B4 --> C[🔄 Merge Data]
-    C --> D[🧠 Refinement: AI for Summarization and Briefing Generation]
-    D --> E{✔️ Content Verification}
-    E -->|Content Verified| F[📤 Send Briefing via Telegram]
-    E -->|Error or No Data| G[❌ Error Message]
+    A["⏰ Scheduled Trigger"] -->|6:00 AM| B["🔍 Data Collection"]
+    
+    subgraph Sources
+        B1["🌧️ OpenWeatherMap"]
+        B2["📅 Google Calendar"]
+        B3["📧 Gmail (Recent 5)"]
+        B4["📝 Google Tasks"]
+    end
+    
+    B --> B1 & B2 & B3 & B4
+    B1 & B2 & B3 & B4 --> C["🔄 Merge & Sanitization (JS)"]
+    
+    C --> D["🧠 Agentic Reasoning"]
+    D -->|Generate HTML Briefing| E["gpt-4o-mini"]
+    
+    E --> F{"Output Processing"}
+    
+    F -->|Path A: Notification| G["📤 Telegram Bot"]
+    
+    F -->|Path B: Memory Consolidation| H["⚖️ Semantic Classifier"]
+    H -->|Is Relevant?| I["🕷️ Information Extractor"]
+    I --> J[("Supabase Vector Store")]
+    
+    G -->|Error Catch| K["❌ Error Handler"]
+
 ```
 
 ---
 
-## 🖇️ Detailed Explanation
+## 🖇️ Technical Deep Dive
 
-### 🔹 Scheduled Trigger
-The workflow is automatically initiated every day at 6:00 AM, ensuring timely execution.
+### 🔹 1. Multi-Source Ingestion
 
-### 🔹 Data Collection
-1. **Weather:** Retrieved via OpenWeatherMap API, providing current conditions and base forecasts.
-2. **Events:** Pulled from the connected Google Calendar.
-3. **Emails:** Captures a summary of the 5 most recent emails in the user's Gmail inbox.
-4. **Tasks:** Fetches pending tasks from Google Tasks.
+The workflow performs parallel requests to fetch the user's immediate context:
 
-### 🔹 Data Merging and Summarization
-Collected data is consolidated into a single structure. JavaScript scripts ensure that each data type is formatted clearly for the AI agent.
+* **Context Window:** Filters Calendar events for `today()` specifically.
+* **Smart Summarization:** Custom JavaScript nodes (`Code`) pre-process generic JSON from Gmail and Tasks into human-readable strings to save LLM tokens.
 
-### 🔹 Briefing Generation
-An AI model is used to analyze the data and generate a briefing with a specific format, meeting constraints such as compatibility with basic HTML and avoiding unsupported tags in Telegram.
+### 🔹 2. The "Briefer" Agent
 
-### 🔹 Verification and Delivery
-If the generated briefing is valid, it is sent to the user via the Telegram API. If not, an error message is sent alerting the user to a failure in generation.
+Unlike simple concatenation, an AI Agent (`gpt-4o-mini`) acts as the architect. It follows a strict **TOON (Token Oriented Object Notation)** system prompt to:
+
+* Format output in Telegram-compatible HTML (sanitizing tags).
+* Decide the tone based on the user's profile.
+* Handle empty states (e.g., "No tasks for today") gracefully.
+
+### 🔹 3. RAG & Long-Term Memory (The "Ghost" Layer)
+
+After sending the message, the workflow continues running in the background:
+
+1. **Classification:** A local classifier determines if the briefing contains valuable historical context.
+2. **Vector Embedding:** If relevant, the context is embedded (using OpenAI Embeddings) and stored in **Supabase (pgvector)**. This allows future agents to query "What did I do last Tuesday?".
 
 ---
 
 ## 🚀 How to Use
 
-1. **Configuration:**
-   - Set credentials for Google, OpenWeatherMap, and Telegram.
-2. **Scheduling:**
-   - Adjust the trigger node's scheduled time, if necessary.
-3. **Execution:**
-   - Test the workflow to ensure it is working as expected.
+### 1. Environment Setup
+
+You need to configure your `Data` node or Environment Variables in n8n:
+
+* `CHAT_ID`: Your Telegram User ID.
+* `USER_NAME`: Your first name (for the Agent's persona).
+
+### 2. Credentials Required
+
+* **Google Cloud:** OAuth2 for Calendar, Gmail, and Tasks.
+* **OpenWeatherMap:** API Key.
+* **OpenAI / OpenRouter:** API Key for the LLM.
+* **Supabase:** (Optional) For the Vector Store functionality.
+
+### 3. Execution
+
+The trigger is set to **6:00 AM** daily. You can manually execute the workflow to test the prompt rendering.
 
 ---
 
-## 🛠️ Dependencies
+## 🛠️ Stack & Dependencies
 
-- **n8n**: Automation tool.
-- **APIs Used**: Google Calendar, Gmail, Google Tasks, OpenWeatherMap, Telegram.
-- **AI Models**: GPT-series via OpenRouter API or OpenAI.
+* **Orchestrator:** n8n (Self-hosted recommended)
+* **LLMs:**
+* *Generation:* GPT-4o-mini (OpenAI)
+* *Extraction:* Gemini 2.5 Flash (via OpenRouter)
+
+
+* **Database:** Supabase (PostgreSQL + pgvector)
+* **Languages:** TypeScript (in Code Nodes) for data transformation.
 
 ---
 
 ## 🤝 Contributions
-Contributions are welcome! Feel free to open issues or submit PRs to the repository.
+
+Feel free to open issues or submit PRs. This project is part of a larger "Personal Agentic OS" ecosystem.
