@@ -45,6 +45,36 @@ flowchart TD
 
 ![e.g](daily-briefer-demo.gif)
 
+### Briefing Structure
+
+```html
+📊 Daily Briefing:
+
+Let's make it a productive day!
+
+Weather in Rio de Janeiro: 26.98°C with few clouds and 74% humidity.
+
+Tasks:
+• Invoice Party Venues - due Jan 14
+• Process Employee Commissions - due Jan 14
+
+Inbox:
+• Video: Deep Research Benchmark for video reasoning - Vlad Bogolin
+• Application sent to Nology - LinkedIn
+• The 6 AI concepts that actually matter - Dataquest
+• Application viewed by WCV Engenharia - LinkedIn
+• Available now: Building agents in LangSmith with natural language - The LangChain Team
+
+Events:
+• 07:00-07:45 Morning Walk (45 mins)
+• 08:00-09:00 Housekeeping
+• 08:00-08:20 HackerRank - Daily Challenge
+• 17:00-19:00 Engineering: Boot.dev
+• 19:00-20:00 Weight Training
+• 19:00-20:30 DSA - Machine Learning Training
+• 19:30-20:15 Evening Walk (45 mins) 
+```
+
 ## 🖇️ Technical Deep Dive
 
 ### 🔹 1. Multi-Source Ingestion
