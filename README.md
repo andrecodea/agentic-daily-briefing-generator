@@ -43,7 +43,7 @@ flowchart TD
 
 ## Briefing Example
 
-![e.g](briefing.png)
+![e.g](daily-briefer-demo.gif)
 
 ## 🖇️ Technical Deep Dive
 
